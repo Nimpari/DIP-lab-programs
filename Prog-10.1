@@ -1,0 +1,36 @@
+IMAGE COMPRESSION BY HUFFMAN CODING
+%% 10. Image Compression by Huffman coding
+clear; clc; close all;
+img = imread('cancer.jpg');
+
+% Convert RGB to indexed grayscale
+[I, cmap] = rgb2ind(img, 256);
+[m, n] = size(I);
+% Flatten the image
+vec = I(:);
+% Compute symbol probabilities
+[counts, ~] = histcounts(vec, 0:256);
+probs = counts / numel(vec);
+symbols = 0:255;
+% Huffman dictionary
+[dict, avglen] = huffmandict(symbols, probs);
+% Huffman encoding
+hcode = huffmanenco(vec, dict);
+% Compression info
+original_bits = numel(vec) * 8;   % 8 bits per pixel
+compressed_bits = numel(hcode);  % Total bits in Huffman code
+compression_ratio = original_bits / compressed_bits;
+% Huffman decoding to reconstruct image
+decoded_vec = huffmandeco(hcode, dict);
+decoded_img = reshape(uint8(decoded_vec), m, n);
+% Convert back to RGB
+reconstructed_rgb = ind2rgb(decoded_img, cmap);
+% Display original and decoded images
+figure;
+subplot(1,2,1); imshow(img); title('Original Image');
+subplot(1,2,2); imshow(reconstructed_rgb); title('Reconstructed Image');
+% Display stats
+disp(['Original Size (bits): ' num2str(original_bits)]);
+disp(['Compressed Size (bits): ' num2str(compressed_bits)]);
+disp(['Compression Ratio: ' num2str(compression_ratio)]);
+disp(['Average Huffman Code Length: ' num2str(avglen)]);
