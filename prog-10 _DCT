@@ -1,0 +1,64 @@
+%% Image compression by DCT.
+
+clc;
+clear all;
+close all;
+
+img = imread(fullfile("cameraman.jpg"));
+img = rgb2gray(img);
+img = double(img);
+
+% User Input for Compression Quality
+x = input('Enter Compression Quality (% of coefficients to keep, e.g., 10-100): ');
+while x < 1 || x > 100
+    x = input('Please enter a value between 1 and 100: ');
+end
+
+%Parameters
+block_size = 8;
+[height, width] = size(img);
+
+% Crop image to multiple of block size
+height_cropped = floor(height / block_size) * block_size;
+width_cropped = floor(width / block_size) * block_size;
+img = img(1:height_cropped, 1:width_cropped);
+
+%Initialize
+reconstructed = zeros(size(img));
+coeffs_to_keep = round(block_size^2 * x / 100);
+
+% DCT Compression and Reconstruction
+for i = 1:block_size:(height_cropped - block_size + 1)
+    for j = 1:block_size:(width_cropped - block_size + 1)
+        block = img(i:i+block_size-1, j:j+block_size-1);
+
+        % Apply DCT
+        dct_block = dct2(block);
+
+        % Keep top coefficients by magnitude
+        flat = dct_block(:);
+        [~, idx] = sort(abs(flat), 'descend');
+        mask = zeros(size(flat));
+        mask(idx(1:coeffs_to_keep)) = 1;
+        flat = flat .* mask;
+
+        % Reconstruct block
+        dct_filtered = reshape(flat, block_size, block_size);
+        recon_block = idct2(dct_filtered);
+
+        reconstructed(i:i+block_size-1, j:j+block_size-1) = recon_block;
+    end
+end
+
+%PSNR Calculation
+original = img;
+mse = mean((original(:) - reconstructed(:)).^2);
+psnr = 10 * log10(255^2 / mse);
+
+% Display Images
+figure; imshow(uint8(original)); title('Original Image');
+figure; imshow(uint8(reconstructed)); title(sprintf('DCT Compressed (%.0f%% coeffs)', x));
+fprintf('PSNR: %.2f dB\n', psnr);
+
+% Save Output
+imwrite(uint8(reconstructed), 'compressed_dct_output.jpg');
