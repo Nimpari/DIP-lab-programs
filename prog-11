@@ -1,0 +1,40 @@
+%% 11. Implementation of image restoring techniques 
+clc;
+clear;
+close all;
+
+% Read the original image
+i = imread('neuron.jpg');  % Replace with your image file
+figure;  % Create a figure for displaying the original image
+subplot(3, 2, 1); 
+imshow(i); 
+title('Original Image'); 
+g = rgb2gray(i); 
+subplot(3, 2, 2);
+imshow(g); 
+title('Gray Image'); 
+
+% Simulate degradation (motion blur + noise)
+h = fspecial('motion', 15, 45);  % Motion blur filter
+blurred_img = imfilter(g, h, 'replicate');  % Apply the blur filter
+noisy_img = imnoise(blurred_img, 'gaussian', 0, 0.01);  % Add Gaussian noise
+subplot(3, 2, 3);
+imshow(noisy_img); 
+title('Degraded Image');
+
+% --- Wiener Filtering ---
+wiener_restored = wiener2(noisy_img, [5 5]);  % Apply Wiener filter
+subplot(3, 2, 4);
+imshow(wiener_restored); 
+title('Restored Image (Wiener Filtering)');
+
+% --- Step 5: Lucy-Richardson Deconvolution ---
+iterations = 3;
+lucy_restored = deconvlucy(noisy_img, h, iterations);
+lucy_restored = mat2gray(lucy_restored);  % Normalize for display
+subplot(3, 2, 5);
+imshow(lucy_restored);
+title('Lucy-Richardson Deconvolution');
+subplot(3, 2,5);
+imshow(lucy_restored);
+title('Restored Image (Lucy-Richardson Deconvolution)');
