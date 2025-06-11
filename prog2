@@ -17,3 +17,4 @@ disp(‘N8=’); disp(N8);
 %Diagonal Neighbour 
 ND=[ a(b+1,c+1), a(b+1,c-1), a(b-1,c-1), a(b-1,c+1)]; 
 disp(‘ND=’); disp(ND);
+
